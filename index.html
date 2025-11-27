@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Christmas Advent Calendar Extravaganza</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Mountains+of+Christmas:wght@400;700&family=Dancing+Script:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* General Body & Background */
+        body {
+            font-family: 'Mountains of Christmas', serif;
+            color: #f8f8f8;
+            min-height: 100vh;
+            background: linear-gradient(to bottom, #1a2a3a 0%, #0a1520 100%); /* Deep night sky */
+            overflow-x: hidden;
+            position: relative;
+            user-select: none; /* Prevent text selection for immersive feel */
+        }
+        /* Festive Text Styles */
+        h1, h2 { font-family: 'Mountains of Christmas', serif; }
+        .dancing-script { font-family: 'Dancing Script', cursive; }
+
+        /* Countdown specific glow */
+        .countdown-glow {
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.7), 0 0 20px rgba(255, 200, 0, 0.5), 0 0 30px rgba(255, 150, 0, 0.3);
+            animation: pulse-glow 2s infinite alternate;
+        }
+        @keyframes pulse-glow {
+            from { text-shadow: 0 0 5px rgba(255, 255, 255, 0.7); }
+            to { text-shadow: 0 0 15px rgba(255, 255, 255, 0.9), 0 0 25px rgba(255, 200, 0, 0.6); }
+        }
+
+        /* Snowfall effect */
+        .snow-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+            overflow: hidden; /* Important to prevent scrollbars from snow */
+        }
+        .snow {
+            position: absolute;
+            background-color: white;
+            border-radius: 50%;
+            opacity: 0.8;
+            animation: snowfall linear infinite;
+        }
+        @keyframes snowfall {
+            0% { transform: translateY(-10vh); opacity: 0; }
+            20% { opacity: 0.8; }
+            100% { transform: translateY(100vh); opacity: 0; }
+        }
+
+        /* Card Styles */
+        .card-bg {
+            background-color: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+        }
+
+        /* Theme Card Specifics */
+        .theme-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        .theme-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+            transition: 0.5s;
+        }
+        .theme-card:hover::before {
+            left: 100%;
+        }
+        .theme-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 0 25px rgba(255, 255, 255, 0.4), 0 0 40px rgba(255, 0, 0, 0.5);
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+        .selected-card {
+            border-color: #fcd34d; /* Gold for selected */
+            border-width: 3px;
+            background: rgba(252, 211, 77, 0.2); /* Light gold background */
+            box-shadow: 0 0 30px rgba(252, 211, 77, 0.6), 0 0 50px rgba(234, 88, 12, 0.7);
+        }
+
+        /* Advent Door Specifics */
+        .advent-door-wrapper {
+            perspective: 1000px;
+            height: 120px; /* Fixed height for consistent sizing */
+        }
+        .advent-door {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transform-style: preserve-3d;
+            transition: transform 0.7s cubic-bezier(0.4, 0.0, 0.2, 1); /* Smooth flip */
+            cursor: pointer;
+        }
+        .advent-door.is-open {
+            transform: rotateY(180deg);
+        }
+        .door-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 0.75rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 0.5rem;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            transition: background-color 0.3s, border-color 0.3s, transform 0.3s;
+        }
+        .door-front {
+            background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%); /* Christmas Red */
+            border: 2px solid #fcd34d; /* Gold border */
+            color: white;
+            z-index: 2;
+        }
+        .door-front:hover {
+            transform: scale(1.03);
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.5), 0 0 30px rgba(255, 0, 0, 0.6);
+        }
+        .door-back {
+            background: linear-gradient(135deg, #fcd34d 0%, #d97706 100%); /* Golden Yellow */
+            border: 2px solid #ef4444; /* Red border */
+            color: #78350f; /* Dark brown text */
+            transform: rotateY(180deg);
+            z-index: 1;
+        }
+        .door-number {
+            font-family: 'Mountains of Christmas', serif;
+            font-size: 2.5rem; /* Large number */
+            font-weight: 700;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        .door-content {
+            font-size: 0.9rem;
+            text-align: center;
+            line-height: 1.3;
+        }
+        .door-icon {
+            font-size: 3rem;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Locked/Unlocked Visuals */
+        .door-status-locked .door-front {
+            background: linear-gradient(135deg, #4b5563 0%, #1f2937 100%); /* Dark Gray/Slate */
+            border-color: #9ca3af;
+            cursor: not-allowed;
+            opacity: 0.9;
+        }
+        .door-status-locked .door-front:hover {
+            transform: none;
+            box-shadow: none;
+            opacity: 1;
+        }
+        .door-status-locked .door-number {
+            color: #d1d5db; /* Lighter gray number */
+            text-shadow: none;
+        }
+        .door-status-locked .door-lock-icon {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            color: #d1d5db;
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(8px);
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background: linear-gradient(145deg, #fef2f2 0%, #ffe4e6 100%); /* Soft Red/Pink gradient */
+            color: #450a0a; /* Dark red text */
+            border: 3px solid #b91c1c; /* Deep red border */
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5), 0 0 0 10px rgba(255, 255, 255, 0.2) inset; /* Outer glow for modal */
+            animation: fadeIn 0.3s ease-out;
+            max-height: 90vh; /* Make modal scrollable */
+            overflow-y: auto;
+        }
+        .modal-close-btn {
+            background-color: #ef4444;
+            color: white;
+            transition: background-color 0.2s;
+        }
+        .modal-close-btn:hover {
+            background-color: #dc2626;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+    </style>
+</head>
+<body class="flex flex-col items-center p-4">
+
+    <!-- Snowfall Background --><div class="snow-container" id="snowContainer"></div>
+
+    <!-- Header and Countdown Section --><header class="w-full max-w-6xl p-6 mb-8 rounded-xl card-bg text-center relative z-10">
+        <h1 class="text-4xl sm:text-5xl font-bold text-white mb-2 tracking-wide dancing-script">
+            Christmas Countdown Fun!
+        </h1>
+        <p class="text-lg text-amber-200 mb-4">Prepare for the merriest day of the year!</p>
+        <div class="mb-4">
+            <h2 class="text-xl sm:text-2xl font-semibold text-white">Time until December 25th:</h2>
+            <p id="countdownDisplay" class="text-5xl sm:text-7xl font-extrabold text-amber-300 countdown-glow mt-2">
+                Loading...
+            </p>
+            <p class="mt-1 text-sm text-gray-300">(Based on your local time)</p>
+        </div>
+    </header>
+
+    <!-- Theme Selector Area (Initial View) --><main id="themeSelectionView" class="w-full max-w-6xl p-6 rounded-xl card-bg relative z-10">
+        <h2 class="text-3xl font-bold text-white text-center mb-6 dancing-script">
+            Choose Your Festive Journey!
+        </h2>
+        <p class="text-center text-gray-200 mb-8 max-w-2xl mx-auto">
+            Select an Advent Calendar theme below to unlock 24 days of unique holiday content, stories, or challenges!
+        </p>
+
+        <!-- Theme Cards Container --><div id="themeContainer" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+            <!-- Themes inserted by JavaScript --></div>
+
+        <div class="mt-10 p-5 rounded-lg border border-white/30 text-center bg-white/10">
+            <h3 class="text-xl font-bold text-white mb-2 dancing-script">Your Selected Adventure:</h3>
+            <p id="selectedThemeDisplay" class="text-lg font-medium text-amber-300">
+                Awaiting your choice...
+            </p>
+            <p class="text-sm text-gray-300 mt-2">
+                Click "Start Advent" after selecting to begin your journey!
+            </p>
+            <button id="startButton" onclick="showAdventCalendar()" class="mt-6 px-8 py-3 bg-gradient-to-r from-red-500 to-red-700 text-white font-bold rounded-full shadow-lg hover:from-red-600 hover:to-red-800 transition transform hover:scale-105 opacity-50 cursor-not-allowed" disabled>
+                Start Advent! 🎁
+            </button>
+        </div>
+    </main>
+    
+    <!-- Advent Calendar View (Hidden until theme is selected) --><section id="adventCalendarView" class="w-full max-w-6xl p-6 rounded-xl card-bg hidden relative z-10">
+        <div class="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
+            <button onclick="backToThemeSelection()" class="px-5 py-2 bg-white/20 hover:bg-white/30 text-white font-semibold rounded-full transition duration-150 flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
+                Change Theme
+            </button>
+
+            <div class="text-center">
+                <h2 class="text-3xl font-bold text-white dancing-script mb-1">
+                    <span id="currentThemeName"></span>
+                </h2>
+                <p class="text-gray-200 text-sm" id="currentThemeDescription"></p>
+            </div>
+
+            <!-- Santa Mode Toggle --><div class="flex items-center space-x-2 bg-white/10 p-2 pr-3 rounded-full border border-white/20">
+                <label for="unlockToggle" class="text-sm font-medium text-white ml-2">Santa Mode:</label>
+                <input type="checkbox" id="unlockToggle" onchange="toggleUnlockAll(this.checked)" class="h-5 w-5 text-red-600 border-gray-300 rounded focus:ring-red-500 bg-gray-700 checked:bg-red-500">
+            </div>
+        </div>
+
+        <!-- Calendar Doors Grid --><div id="calendarDoorsContainer" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3 sm:gap-4">
+            <!-- Doors inserted by JavaScript --></div>
+
+        <p class="mt-8 text-center text-sm text-gray-400">
+            <span class="text-red-400 font-bold">Locked:</span> Door is for a future date. | 
+            <span class="text-emerald-400 font-bold">Unlocked:</span> Door is for today or a past date. | 
+            <span class="text-amber-300 font-bold">Opened:</span> Door has been clicked.
+        </p>
+    </section>
+
+    <!-- Modal for Door Content --><div id="doorModal" class="modal-overlay hidden">
+        <div class="modal-content relative w-11/12 max-w-xl p-8 rounded-xl">
+            <button onclick="closeModal()" class="modal-close-btn absolute top-4 right-4 text-xl font-bold rounded-full h-8 w-8 flex items-center justify-center">
+                &times;
+            </button>
+            <div class="text-center mb-6">
+                <span id="modalDoorIcon" class="text-5xl mb-3 block"></span>
+                <h3 id="modalDoorTitle" class="text-3xl font-bold dancing-script mb-2"></h3>
+                <p id="modalDayNumber" class="text-sm text-gray-700"></p>
+            </div>
+            <div id="modalDoorContent" class="text-base leading-relaxed max-h-80 overflow-y-auto pr-2">
+                <!-- Content will be inserted here --></div>
+            <button onclick="closeModal()" class="mt-8 w-full py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-full transition transform hover:scale-105">
+                Close
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // --- Global State & Constants ---
+        let currentSelectedTheme = null;
+        let openedDoors = {};
+        let unlockAll = false;
+        const christmasDay = 25; // December 25th
+
+        // --- DOM Elements ---
+        const countdownDisplay = document.getElementById('countdownDisplay');
+        const themeContainer = document.getElementById('themeContainer');
+        const selectedThemeDisplay = document.getElementById('selectedThemeDisplay');
+        const startButton = document.getElementById('startButton');
+        const themeSelectionView = document.getElementById('themeSelectionView');
+        const adventCalendarView = document.getElementById('adventCalendarView');
+        const currentThemeNameEl = document.getElementById('currentThemeName');
+        const currentThemeDescriptionEl = document.getElementById('currentThemeDescription');
+        const calendarDoorsContainer = document.getElementById('calendarDoorsContainer');
+        const unlockToggle = document.getElementById('unlockToggle');
+        const doorModal = document.getElementById('doorModal');
+        const modalDoorIcon = document.getElementById('modalDoorIcon');
+        const modalDoorTitle = document.getElementById('modalDoorTitle');
+        const modalDayNumber = document.getElementById('modalDayNumber');
+        const modalDoorContent = document.getElementById('modalDoorContent');
+
+        // --- Advent Calendar Theme Data ---
+        const ADVENT_CALENDAR_THEMES = [
+            { 
+                id: 'nazareth',
+                name: "Journey to Nazareth", 
+                icon: "🙏", 
+                description: "The story of Jesus' birth from Annunciation to Nativity, including Bible citations and spiritual reflections.", 
+                category: "Spiritual",
+                days: [
+                    "The Prophecy of the King: The ancient promise from God that a ruler would emerge from the small town of Bethlehem, the 'least' among the thousands of Judah. **(Source: Micah 5:2)**",
+                    "The Annunciation to Mary: The angel Gabriel appears to Mary in Nazareth, announcing she will bear the Son of the Highest and name him Jesus. **(Source: Luke 1:26-33)**",
+                    "Mary's Fiat: Mary gives her faithful response of acceptance, submitting to God's will: 'Behold the handmaid of the Lord; be it unto me according to thy word.' **(Source: Luke 1:38)**",
+                    "The Magnificat: Mary visits her relative Elizabeth, and her hymn of praise, rejoicing in God's mercy and the fulfillment of prophecy, is recorded. **(Source: Luke 1:46-55)**",
+                    "The Angel to Joseph: Joseph, troubled by Mary's pregnancy, is visited by an angel in a dream who confirms the child is conceived by the Holy Spirit. **(Source: Matthew 1:20-21)**",
+                    "Caesar's Decree: The Roman emperor Augustus orders a worldwide census, requiring all people to return to their ancestral towns to be registered. **(Source: Luke 2:1)**",
+                    "The Journey Begins: Joseph and a heavily pregnant Mary begin the long, arduous journey south from Nazareth toward Bethlehem, the city of David. **(Source: Luke 2:4-5)**",
+                    "Arrival in Bethlehem: They finally reach the City of David, finding the small town overwhelmed with travelers for the census. **(Source: Luke 2:6)**",
+                    "No Room in the Inn: Due to the crowds, there is absolutely no place for them to stay among the regular lodging houses or public inns. **(Source: Luke 2:7, part 1)**",
+                    "The Manger: Mary gives birth, wraps the child, and lays him in an animal feeding trough (a manger), as it was the only available resting place. **(Source: Luke 2:7, part 2)**",
+                    "The Shepherds' Watch: While watching their flocks by night in the fields near Bethlehem, they are interrupted by a heavenly light. **(Source: Luke 2:8)**",
+                    "The Angel Appears: The angel of the Lord stands before the shepherds, and the terrifying glory of God shines brightly around them. **(Source: Luke 2:9)**",
+                    "The Command to Not Fear: The angel commands the terrified shepherds not to fear, bringing tidings of great joy for all people: the Savior is born. **(Source: Luke 2:10-11)**",
+                    "The Sign Given: The angel gives them a specific marker to identify the Messiah: a baby wrapped in swaddling clothes and lying in a manger. **(Source: Luke 2:12)**",
+                    "The Heavenly Host: Suddenly, a multitude of the heavenly host joins the first angel, praising God with a powerful chorus. **(Source: Luke 2:13)**",
+                    "The Gloria: The host sings, 'Glory to God in the highest, and on earth peace, good will toward men.' **(Source: Luke 2:14)**",
+                    "The Shepherds Go: The shepherds immediately decide among themselves to leave their flocks and rush to Bethlehem to witness the divine sign. **(Source: Luke 2:15)**",
+                    "Finding the Family: They arrive and find Mary, Joseph, and the baby lying in the manger, exactly as the angel had described. **(Source: Luke 2:16)**",
+                    "Spreading the Word: The shepherds leave and immediately tell everyone they encounter about the miraculous vision and the sign they saw. **(Source: Luke 2:17-18)**",
+                    "Mary Pondered: Mary quietly observed all these events, storing and reflecting upon every word and detail in her heart. **(Source: Luke 2:19)**",
+                    "The Star Rises: Separately, wise men (*Magi*) in the East see the astronomical sign of the new King's birth and begin their long, deliberate journey. **(Source: Matthew 2:1-2)**",
+                    "A Dangerous Detour: The Magi detour through Jerusalem, inadvertently alerting King Herod, who plots the child's destruction. **(Source: Matthew 2:3-8)**",
+                    "The Gift Ceremony: The Magi follow the star to the house, where they bow down and offer their precious tributes: gold, frankincense, and myrrh. **(Source: Matthew 2:9-11)**",
+                    "The Proclamation of Salvation: And so, the Savior, Christ the Lord, is born in Bethlehem! His birth fulfills prophecy, bringing light and hope, and a path to eternal salvation for all humanity. **(Source: Luke 2:11, John 3:16)**"
+                ]
+            },
+            { 
+                id: 'santa',
+                name: "Santa's Secret Sleigh", 
+                icon: "🎅", 
+                description: "Tracing the history of St. Nicholas, the evolution of Santa Claus, and global winter traditions.", 
+                category: "Mythology",
+                days: [
+                    "Day 1: **The Good Bishop.** Our journey starts in 4th century Turkey with Saint Nicholas, a kind bishop known for secret gift-giving and great generosity.",
+                    "Day 2: **The Secret Dowry.** The famous tale is his act of saving three poor sisters from hardship by anonymously tossing bags of gold through their window.",
+                    "Day 3: **Sinterklaas Arrives.** The tradition evolves in Holland. *Sinterklaas* is a tall, serious figure who arrives by steamship and wears a bishop's robes.",
+                    "Day 4: **Crossing the Sea.** Dutch immigrants bring the *Sinterklaas* tradition to the American colonies, where the name slowly becomes anglicized to 'Santa Claus.'",
+                    "Day 5: **A Night Before.** In 1823, Clement Clarke Moore's famous poem, *A Visit from St. Nicholas*, defines the figure as rotund, joyful, and riding a sleigh with eight tiny reindeer.",
+                    "Day 6: **The Name Lore.** Moore names the eight reindeer: Dasher, Dancer, Prancer, Vixen, Comet, Cupid, Donner, and Blitzen, giving them distinct personalities.",
+                    "Day 7: **The Visual Design.** In the 1880s, cartoonist Thomas Nast gives Santa his iconic modern look: a large stomach, a beard, and a fur-trimmed suit, cementing the image.",
+                    "Day 8: **The North Pole.** The idea of Santa living year-round at the icy North Pole becomes popularized, moving his domain far from the warm Mediterranean.",
+                    "Day 9: **The Elves' Workshop.** With the North Pole came the need for labor: the tiny, industrious elves are introduced as the magical toymakers.",
+                    "Day 10: **The Red Suit.** While Santa wore various colors, a famous 1930s advertising campaign standardized his look into the iconic red and white we know today.",
+                    "Day 11: **The Great List.** The tradition of the 'Naughty or Nice' list is formalized, emphasizing good behavior and the moral importance of generosity.",
+                    "Day 12: **Global Logistics.** The magic of the sleigh is born, powered not by fuel, but by goodwill and the collective belief in the spirit of Christmas.",
+                    "Day 13: **Mrs. Claus.** The literary need for a domestic partner emerges, and Mrs. Claus becomes the beloved figure who manages the workshop and bakes for the elves.",
+                    "Day 14: **The Tree Tradition.** The history of bringing evergreen trees indoors and decorating them with candles (later lights) is traced back to 16th-century Germany.",
+                    "Day 15: **The Circular Treat.** The story of the candy cane, said to have originated in Germany, shaped like a shepherd's crook to represent the Nativity story.",
+                    "Day 16: **Cookies and Carrots.** The custom of leaving out food—cookies and milk for Santa, and carrots for the tired reindeer—takes hold worldwide.",
+                    "Day 17: **The Christmas Card.** The practice of sending decorated greetings through the mail was started in England in 1843 by Sir Henry Cole.",
+                    "Day 18: **The Chimney Trick.** The belief that Santa enters homes magically through the chimney, a concept linked to St. Nicholas's secret window gifts.",
+                    "Day 19: **The Miracle Reindeer.** The modern tale of Rudolph, the ninth reindeer, created in 1939 for a department store coloring book, who saved Christmas Eve.",
+                    "Day 20: **A Time of Silence.** The tradition of 'Silent Night'—a simple Austrian carol composed quickly on Christmas Eve because the church organ was broken.",
+                    "Day 21: **Post Office Magic.** The custom of children sending letters to Santa, which are often answered by volunteers or postal workers who keep the magic alive.",
+                    "Day 22: **The Bell of Belief.** The sound of a bell—often associated with the sleigh—becomes the sign of true, innocent belief in the magic of the season.",
+                    "Day 23: **The Final Check.** The nervous anticipation on Christmas Eve as the children are rushed to bed and the final preparations are made downstairs.",
+                    "Day 24: **The Sound of Joy.** The arrival of Santa, and the silent, wonderful chaos of toys, wrapped presents, and shared happiness in the morning."
+                ]
+            },
+            { 
+                id: 'music',
+                name: "Jingle Bell Rock", 
+                icon: "🎶", 
+                description: "Daily trivia, facts, and short sing-alongs related to classic and modern Christmas music.", 
+                category: "Media",
+                days: [
+                    "Day 1: **Which Christmas carol was the first song ever broadcast from space?** *Answer: Jingle Bells (broadcast by the Gemini 6 astronauts in 1965).*",
+                    "Day 2: **What is the name of the character who narrates the song 'Rudolph the Red-Nosed Reindeer'?** *Answer: The song is typically narrated by an unspecified third party or the lead singer, often associated with Gene Autry or Burl Ives for specific versions.*",
+                    "Day 3: **In the song 'The 12 Days of Christmas,' what type of trees are the partridges found in?** *Answer: Pear trees.*",
+                    "Day 4: **Which famous pop singer recorded the mega-hit 'All I Want for Christmas Is You'?** *Answer: Mariah Carey.*",
+                    "Day 5: **'I'm dreaming of a white Christmas...' Which singer first performed this iconic song in the movie *Holiday Inn*?** *Answer: Bing Crosby.*",
+                    "Day 6: **The Trans-Siberian Orchestra is famous for modern rock renditions of holiday music. What is the name of their popular debut album?** *Answer: Christmas Eve and Other Stories.*",
+                    "Day 7: **What popular Christmas song includes the line 'City sidewalks, busy sidewalks, dressed in holiday style'?** *Answer: Silver Bells.*",
+                    "Day 8: **Which holiday song requests that 'no more let sins and sorrows grow' and 'nor thorns infest the ground'?** *Answer: Joy to the World.*",
+                    "Day 9: **What is the real title of the song commonly referred to as 'The Christmas Song'?** *Answer: Chestnuts Roasting on an Open Fire (written by Mel Tormé and Bob Wells).*",
+                    "Day 10: **Which band released the popular 80s hit 'Do They Know It's Christmas?' to raise money for Ethiopian famine relief?** *Answer: Band Aid.*",
+                    "Day 11: **The song 'A Holly Jolly Christmas' features what type of greeting?** *Answer: Have a holly jolly Christmas!*",
+                    "Day 12: **In 'You're a Mean One, Mr. Grinch,' what three words best describe the Grinch's soul?** *Answer: Poop, poop, poop (or, more conventionally, 'A three-decker sauerkraut and toadstool sandwich with arsenic sauce').*",
+                    "Day 13: **Which animated character sings 'The Chipmunk Song (Christmas Don't Be Late)'?** *Answer: Alvin and the Chipmunks (specifically Alvin, Simon, and Theodore).*",
+                    "Day 14: **'Feliz Navidad' blends two languages. What are they?** *Answer: Spanish and English.*",
+                    "Day 15: **Who recorded the 1963 song 'It's the Most Wonderful Time of the Year'?** *Answer: Andy Williams.*",
+                    "Day 16: **What holiday song is about a mouse that stirs?** *Answer: 'Twas the Night Before Christmas (or, more accurately, the poem it's based on, where 'not a creature was stirring, not even a mouse').*",
+                    "Day 17: **Which carol's lyrics begin with 'Hark! The herald angels sing, Glory to the newborn King'?** *Answer: Hark! The Herald Angels Sing.*",
+                    "Day 18: **The song 'Let It Snow! Let It Snow! Let It Snow!' was actually written during which season?** *Answer: July (a heatwave).*",
+                    "Day 19: **What instrument typically accompanies the traditional German carol 'O Tannenbaum' (O Christmas Tree)?** *Answer: The piano or organ.*",
+                    "Day 20: **In 'Winter Wonderland,' what do we call the snowman?** *Answer: Parson Brown.*",
+                    "Day 21: **What is the primary message of the song 'We Wish You a Merry Christmas'?** *Answer: To request figgy pudding.*",
+                    "Day 22: **Who sings the duet 'Baby It's Cold Outside' in the movie *Neptune's Daughter* (1949)?** *Answer: Ricardo Montalbán and Esther Williams.*",
+                    "Day 23: **Which 1970 song by The Jackson 5 is a popular Christmas hit?** *Answer: Santa Claus Is Comin' to Town (or a Christmas album classic).*",
+                    "Day 24: **Final Question: What song title is hidden in this phrase: 'The holly wreath hangs near the chimney place'?** *Answer: Here Comes Santa Claus.*"
+                ]
+            },
+            { 
+                id: 'movies',
+                name: "Holiday Movie Magic", 
+                icon: "🎬", 
+                description: "Daily quotes, trivia, and facts from classic and modern Christmas films and TV specials.", 
+                category: "Media",
+                days: [
+                    "Day 1: **Quote:** 'You'll shoot your eye out, kid!' **Movie:** *A Christmas Story*. **Trivia:** The movie is set in the fictional town of Hohman, Indiana, which is based on the writer Jean Shepherd's hometown of Hammond, Indiana.",
+                    "Day 2: **Quote:** 'The best way to spread Christmas Cheer is singing loud for all to hear.' **Movie:** *Elf*. **Trivia:** Will Ferrell suffered from constant headaches during filming due to the excessive amount of sugar he had to consume.",
+                    "Day 3: **Quote:** 'Every time a bell rings, an angel gets his wings.' **Movie:** *It's a Wonderful Life*. **Trivia:** The film was initially considered a box-office failure upon its 1946 release.",
+                    "Day 4: **Quote:** 'Maybe Christmas, perhaps, means a little bit more.' **Movie:** *How the Grinch Stole Christmas!* **Trivia:** Boris Karloff, who narrated and voiced the Grinch, also narrated the story of Peter and the Wolf.",
+                    "Day 5: **Quote:** 'Keep the change, ya filthy animal.' **Movie:** *Home Alone*. **Trivia:** The black-and-white gangster movie that Kevin watches is fictional and was filmed specifically for *Home Alone*.",
+                    "Day 6: **Quote:** 'Seeing is believing, but sometimes the most real things in the world are the things we can’t see.' **Movie:** *The Polar Express*. **Trivia:** The film was shot using performance capture technology, where actors wore motion-capture suits.",
+                    "Day 7: **Quote:** 'That is the one thing about this whole Christmas thing that has gotten to me: there are too many people.' **Movie:** *National Lampoon's Christmas Vacation*. **Trivia:** The Griswold house is the same house used in the film *Ferris Bueller's Day Off*.",
+                    "Day 8: **Quote:** 'We all know that Christmas is one of the most commercialized holidays in the world.' **Movie:** *A Charlie Brown Christmas*. **Trivia:** The network executives originally hated the special because it used jazz music and featured a reading from the Bible.",
+                    "Day 9: **Quote:** 'Humbug.' **Movie:** *A Christmas Carol*. **Trivia:** Ebenezer Scrooge's famous catchphrase. Charles Dickens wrote the novella in just six weeks.",
+                    "Day 10: **Quote:** 'Come on, kid, I'm the angel of Christmas.' **Movie:** *The Santa Clause*. **Trivia:** Tim Allen originally turned down the role of Scott Calvin/Santa.",
+                    "Day 11: **Quote:** 'Merry Christmas, ya'll!' **Movie:** *Love Actually*. **Trivia:** The film features 8 separate story arcs that eventually intertwine.",
+                    "Day 12: **Quote:** 'The name is McClane. John McClane.' **Movie:** *Die Hard*. **Trivia:** Yes, it is a Christmas movie. It takes place entirely during a Christmas Eve party.",
+                    "Day 13: **Quote:** 'Bumbles bounce!' **Movie:** *Rudolph the Red-Nosed Reindeer (1964 TV special)*. **Trivia:** The Bumble (Abominable Snow Monster) only has one visible tooth.",
+                    "Day 14: **Quote:** 'I want an official Red Ryder, carbine action, two-hundred shot range model air rifle!' **Movie:** *A Christmas Story*. **Trivia:** The BB gun is the central object of Ralphie's desire throughout the entire film.",
+                    "Day 15: **Quote:** 'When we're together, that is my favorite gift.' **Movie:** *The Christmas Chronicles*. **Trivia:** Kurt Russell plays Santa Claus in this modern Netflix film series.",
+                    "Day 16: **Quote:** 'You better watch out, you better not cry...' **Movie:** *Santa Claus is Comin' to Town (1970 TV special)*. **Trivia:** The special explains the origin of many Santa traditions, like his laugh and his beard.",
+                    "Day 17: **Quote:** 'I believe.' **Movie:** *Miracle on 34th Street*. **Trivia:** The film features Macy's department store and the real Macy's Thanksgiving Day Parade.",
+                    "Day 18: **Quote:** 'The thing about the North Pole is that it is a *very* long way away.' **Movie:** *The Nightmare Before Christmas*. **Trivia:** Tim Burton created the original poem and characters for this stop-motion classic.",
+                    "Day 19: **Quote:** 'I just like to smile; smiling's my favorite.' **Movie:** *Elf*. **Trivia:** Buddy the Elf's diet consists mainly of four food groups: candy, candy canes, candy corns, and syrup.",
+                    "Day 20: **Quote:** 'Merry Christmas, you old Building and Loan!' **Movie:** *It's a Wonderful Life*. **Trivia:** The town set, Bedford Falls, was one of the longest movie sets ever built at the time, covering four acres.",
+                    "Day 21: **Quote:** 'It's Christmas Eve! It's the one night of the year when we all act a little nicer, we smile a little easier, we cheer a little more.' **Movie:** *Scrooged*. **Trivia:** Bill Murray's ad-libbing was encouraged by director Richard Donner.",
+                    "Day 22: **Quote:** 'You're skipping Christmas? Isn't that illegal?' **Movie:** *Christmas with the Kranks*. **Trivia:** The Kranks decide to skip Christmas and take a cruise instead, much to the dismay of their neighbors.",
+                    "Day 23: **Quote:** 'If you look for it, I've got a sneaky feeling you'll find that love actually is all around.' **Movie:** *Love Actually*. **Trivia:** This quote is a defining mantra of the entire film.",
+                    "Day 24: **Quote:** 'God bless us, everyone!' **Movie:** *A Christmas Carol*. **Trivia:** Tiny Tim delivers the final, poignant line, summarizing the spirit of redemption and generosity."
+                ]
+            },
+            { 
+                id: 'fitness',
+                name: "Winter Wellness", 
+                icon: "🏋️", 
+                description: "Daily fitness mini-challenges, tips for staying active, and healthy holiday eating advice.", 
+                category: "Lifestyle",
+                days: [
+                    "Day 1: **Challenge: The 5-Minute Core.** Hold a plank for 60 seconds. Do 2 sets of 15 crunches and 15 reverse crunches.",
+                    "Day 2: **Tip: Hydrate & Conquer.** Carry a water bottle today. Aim to drink half your body weight in ounces of water to combat dry indoor air.",
+                    "Day 3: **Challenge: Desk Destroyer.** Every hour, stand up and perform 10 desk push-ups and 10 calf raises.",
+                    "Day 4: **Tip: Mindful Munching.** Before you reach for a cookie, drink a glass of water. Wait 10 minutes. If you still want it, enjoy one!",
+                    "Day 5: **Challenge: Stair Stepper.** Take the stairs instead of the elevator or escalator every chance you get today.",
+                    "Day 6: **Tip: Sleep is Fuel.** Aim for 7-9 hours of quality sleep tonight. Good rest is essential for hormone balance and energy levels.",
+                    "Day 7: **Challenge: Wall Sit Warrior.** Hold a wall sit for 90 seconds (or as long as you can). Listen to your favorite holiday song while doing it!",
+                    "Day 8: **Tip: Protein Power.** Make sure every meal today includes a solid source of lean protein (turkey, eggs, nuts, beans).",
+                    "Day 9: **Challenge: Shoulder Strength.** Do 3 sets of 15 push-ups (use knees if needed) and 15 horizontal rows (use resistance bands or household items).",
+                    "Day 10: **Tip: Move Your Meeting.** If you have a long phone call or virtual meeting, turn it into a walking meeting outdoors or pace indoors.",
+                    "Day 11: **Challenge: Leg Blaster.** 3 sets of 20 squats, 20 lunges (10 per leg). Focus on slow, controlled movements.",
+                    "Day 12: **Tip: Fiber Focus.** Eat a high-fiber breakfast (oatmeal, high-fiber cereal) to stay full and regulate blood sugar before holiday treats.",
+                    "Day 13: **Challenge: 10-Minute Stretch.** Dedicate 10 minutes today to stretching, focusing on hips, hamstrings, and shoulders.",
+                    "Day 14: **Tip: Avoid Empty Calories.** Choose drinks wisely. Eggnog and festive lattes can hide hundreds of calories. Opt for tea or sparkling water.",
+                    "Day 15: **Challenge: Balance Builder.** Stand on one foot for 60 seconds (switch legs). Try closing your eyes for an extra challenge.",
+                    "Day 16: **Tip: Meal Prep Mastery.** Cook a large batch of healthy soup or roasted vegetables tonight to snack on throughout the week.",
+                    "Day 17: **Challenge: Cardio Burst.** Do 3 rounds of 30 seconds of jumping jacks followed by 30 seconds of rest.",
+                    "Day 18: **Tip: Don't Go Hungry.** Eat a healthy snack (apple and peanut butter) 30 minutes before a holiday party to prevent overeating.",
+                    "Day 19: **Challenge: The Plank Ladder.** Hold a plank for 30s, rest 10s. Hold 45s, rest 10s. Hold 60s. Total time: 2.5 minutes.",
+                    "Day 20: **Tip: Fresh Air Fix.** Spend at least 20 minutes outside today. The cold air is invigorating and can boost mood.",
+                    "Day 21: **Challenge: Total Body Blitz.** Perform 10 burpees and 20 mountain climbers. Repeat 3 times.",
+                    "Day 22: **Tip: Portion Control.** Use a smaller plate for your main course at holiday gatherings to naturally manage portion sizes.",
+                    "Day 23: **Challenge: Relax & Rejuvenate.** Try 10 minutes of guided meditation or gentle yoga to prepare your mind for the holiday rush.",
+                    "Day 24: **Final Challenge: The Holiday Hike.** Take a 30-minute walk or light jog to celebrate your fitness progress before the feasting begins!"
+                ]
+            },
+            { 
+                id: 'foodie',
+                name: "Festive Foodie Fun", 
+                icon: "🍽️", 
+                description: "Daily cooking tips, fun food facts, and simple recipes perfect for the holiday season.", 
+                category: "Lifestyle",
+                days: [
+                    "Day 1: **Tip:** The secret to perfectly crisp roast potatoes? Parboil them, rough up the edges, and roast in hot oil or goose fat.",
+                    "Day 2: **Fact:** Gingerbread was first introduced to Europe by an Armenian monk named Gregory of Nicopolis in the 10th century.",
+                    "Day 3: **Recipe Idea:** Simple Cinnamon Rolls. Use store-bought puff pastry, spread with butter, cinnamon, and brown sugar, roll, slice, and bake!",
+                    "Day 4: **Tip:** To prevent cranberry sauce from being too tart, add a pinch of baking soda to neutralize some of the acid.",
+                    "Day 5: **Fact:** The most expensive spice in the world, saffron, is often used to give Swedish Saffron Buns their distinctive color and flavor.",
+                    "Day 6: **Recipe Idea:** Homemade Hot Cocoa Mix. Combine powdered sugar, cocoa powder, and a tiny bit of salt. Store in a decorative jar.",
+                    "Day 7: **Tip:** For moist turkey, spread a compound butter (mixed with herbs like sage and thyme) under the skin before roasting.",
+                    "Day 8: **Fact:** The traditional Yule Log cake (Bûche de Noël) symbolizes the actual log that was historically burned in the fireplace from Christmas Eve to New Year's Day.",
+                    "Day 9: **Recipe Idea:** Quick Christmas Bark. Melt chocolate chips, spread thinly, top with crushed candy canes and sprinkles, chill until firm, and break into pieces.",
+                    "Day 10: **Tip:** If your gravy is too thin, mix a teaspoon of cornstarch with a tablespoon of cold water before whisking into the simmering gravy.",
+                    "Day 11: **Fact:** Eggnog's origins can be traced back to the medieval European drink 'posset,' a hot, milky, and often alcoholic beverage.",
+                    "Day 12: **Recipe Idea:** Party Appetizer: Mini Caprese Skewers. Cherry tomato, basil leaf, small mozzarella ball, drizzled with balsamic glaze.",
+                    "Day 13: **Tip:** When baking cookies, chill the dough for at least 30 minutes. This prevents spreading and helps the cookies hold their shape.",
+                    "Day 14: **Fact:** The tradition of hanging stockings is believed to have started when St. Nicholas secretly dropped gold coins down a chimney, and they landed in stockings drying by the fire.",
+                    "Day 15: **Recipe Idea:** Spiced Nuts. Toss mixed nuts with melted butter, cinnamon, nutmeg, a little cayenne, and brown sugar. Roast until crunchy.",
+                    "Day 16: **Tip:** If you accidentally over-salt a pot of soup or stew, add a peeled, raw potato to simmer for 20 minutes—it will absorb some of the excess salt!",
+                    "Day 17: **Fact:** Peppermint, a classic holiday flavor, is a natural hybrid of spearmint and watermint.",
+                    "Day 18: **Recipe Idea:** Simple Mulled Wine. Combine cheap red wine, orange slices, cinnamon sticks, cloves, and star anise. Simmer for 15 minutes.",
+                    "Day 19: **Tip:** Always use room-temperature butter and eggs when baking. This helps them combine uniformly, resulting in a smoother batter and better texture.",
+                    "Day 20: **Fact:** Christmas pudding is traditionally aged for a month or more, giving its flavors time to deepen and mature.",
+                    "Day 21: **Recipe Idea:** Festive Toast Topping: Cream cheese mixed with powdered sugar, topped with chopped pistachios and dried cranberries.",
+                    "Day 22: **Tip:** To quickly ripen avocados for guacamole, place them in a brown paper bag with a banana or apple overnight.",
+                    "Day 23: **Fact:** The largest gingerbread house ever made was constructed in Texas and covered 40,000 cubic feet.",
+                    "Day 24: **Final Recipe Idea:** Hot Chocolate Bar Prep! Lay out marshmallows, whipped cream, chocolate syrup, peppermint schnapps (for adults), and sprinkles for the perfect Christmas Eve drink setup."
+                ]
+            }
+        ];
+
+        // --- Utility Functions ---
+
+        /**
+         * Get the current day of the Advent season (1-24), or 0 if outside the season.
+         */
+        function getCurrentAdventDay() {
+            const today = new Date();
+            const year = today.getFullYear();
+            
+            // Set Advent start and end boundaries
+            const adventStart = new Date(year, 11, 1); // December 1st
+            const adventEnd = new Date(year, 11, 24); // December 24th
+
+            if (today < adventStart || today > adventEnd) {
+                return 0; // Not Advent season
+            }
+
+            return today.getDate();
+        }
+
+        /**
+         * Loads state (theme and opened doors) from localStorage.
+         */
+        function loadState() {
+            const savedThemeId = localStorage.getItem('adventThemeId');
+            const savedDoors = localStorage.getItem('adventOpenedDoors');
+
+            if (savedThemeId) {
+                currentSelectedTheme = ADVENT_CALENDAR_THEMES.find(t => t.id === savedThemeId) || null;
+            }
+            if (savedDoors) {
+                try {
+                    openedDoors = JSON.parse(savedDoors);
+                } catch (e) {
+                    console.error("Error parsing saved doors state:", e);
+                    openedDoors = {};
+                }
+            }
+        }
+
+        /**
+         * Saves state (theme and opened doors) to localStorage.
+         */
+        function saveState() {
+            localStorage.setItem('adventThemeId', currentSelectedTheme ? currentSelectedTheme.id : '');
+            localStorage.setItem('adventOpenedDoors', JSON.stringify(openedDoors));
+        }
+
+        // --- UI Rendering Functions ---
+
+        /**
+         * Updates the main view based on whether a theme is selected.
+         */
+        function updateViewBasedOnTheme() {
+            if (currentSelectedTheme) {
+                // Show Advent Calendar View
+                themeSelectionView.classList.add('hidden');
+                adventCalendarView.classList.remove('hidden');
+
+                // Update calendar header
+                currentThemeNameEl.textContent = currentSelectedTheme.name;
+                currentThemeDescriptionEl.textContent = currentSelectedTheme.description;
+                
+                renderDoors();
+            } else {
+                // Show Theme Selection View
+                themeSelectionView.classList.remove('hidden');
+                adventCalendarView.classList.add('hidden');
+                selectedThemeDisplay.textContent = 'Awaiting your choice...';
+                startButton.classList.add('opacity-50', 'cursor-not-allowed');
+                startButton.disabled = true;
+            }
+        }
+
+        /**
+         * Renders the theme selection cards.
+         */
+        function renderThemeCards() {
+            themeContainer.innerHTML = '';
+            ADVENT_CALENDAR_THEMES.forEach(theme => {
+                const isSelected = currentSelectedTheme && currentSelectedTheme.id === theme.id;
+                const card = document.createElement('div');
+                card.className = `theme-card p-4 rounded-xl text-center ${isSelected ? 'selected-card' : ''}`;
+                card.onclick = () => selectTheme(theme.id);
+                
+                card.innerHTML = `
+                    <span class="text-4xl block mb-2">${theme.icon}</span>
+                    <h3 class="font-bold text-lg text-white mb-1">${theme.name}</h3>
+                    <p class="text-xs text-gray-300">${theme.category}</p>
+                    <p class="text-sm mt-2 text-gray-400">${theme.description}</p>
+                `;
+                themeContainer.appendChild(card);
+            });
+        }
+
+        /**
+         * Handles theme selection click.
+         */
+        function selectTheme(themeId) {
+            currentSelectedTheme = ADVENT_CALENDAR_THEMES.find(t => t.id === themeId);
+            
+            // Highlight card and enable button
+            renderThemeCards();
+            selectedThemeDisplay.textContent = currentSelectedTheme.name + ' ' + currentSelectedTheme.icon;
+            startButton.classList.remove('opacity-50', 'cursor-not-allowed');
+            startButton.disabled = false;
+        }
+
+        /**
+         * Renders the 24 Advent Doors.
+         */
+        function renderDoors() {
+            if (!currentSelectedTheme) return;
+
+            calendarDoorsContainer.innerHTML = '';
+            const currentDay = getCurrentAdventDay();
+            const daysInTheme = currentSelectedTheme.days;
+
+            for (let day = 1; day <= 24; day++) {
+                const dayIndex = day - 1;
+                const isOpened = openedDoors[currentSelectedTheme.id] && openedDoors[currentSelectedTheme.id].includes(day);
+                const isLocked = !unlockAll && day > currentDay;
+
+                const wrapper = document.createElement('div');
+                wrapper.className = 'advent-door-wrapper';
+
+                wrapper.innerHTML = `
+                    <div id="door-${day}" class="advent-door ${isOpened ? 'is-open' : ''} ${isLocked ? 'door-status-locked' : ''}">
+                        <!-- Door Front (Closed State) -->
+                        <div class="door-face door-front">
+                            <span class="door-number">${day}</span>
+                            ${isLocked ? '<span class="door-lock-icon">🔒</span>' : ''}
+                            <p class="text-xs mt-1">
+                                ${isLocked ? 'Locked' : (isOpened ? 'Opened' : 'Click to Open')}
+                            </p>
+                        </div>
+
+                        <!-- Door Back (Opened Content - Placeholder) -->
+                        <div class="door-face door-back p-1 text-xs">
+                            <span class="font-bold text-sm">Day ${day}</span>
+                            <p class="door-content mt-1 italic">${daysInTheme[dayIndex].substring(0, 40)}...</p>
+                        </div>
+                    </div>
+                `;
+
+                // Add click listener
+                const doorElement = wrapper.querySelector(`#door-${day}`);
+                if (!isLocked) {
+                    doorElement.addEventListener('click', () => openDoor(day, doorElement));
+                }
+
+                calendarDoorsContainer.appendChild(wrapper);
+            }
+        }
+
+        /**
+         * Handles opening a door and showing the modal.
+         */
+        function openDoor(day, doorElement) {
+            // Check if locked again (safety guard)
+            if (doorElement.classList.contains('door-status-locked') && !unlockAll) return;
+
+            // Mark as opened in state
+            if (!openedDoors[currentSelectedTheme.id]) {
+                openedDoors[currentSelectedTheme.id] = [];
+            }
+            if (!openedDoors[currentSelectedTheme.id].includes(day)) {
+                openedDoors[currentSelectedTheme.id].push(day);
+            }
+            saveState();
+
+            // Apply flip animation
+            doorElement.classList.add('is-open');
+
+            // Find content
+            const dayContent = currentSelectedTheme.days[day - 1];
+            
+            // Populate modal
+            modalDoorIcon.textContent = currentSelectedTheme.icon;
+            modalDoorTitle.textContent = currentSelectedTheme.name;
+            modalDayNumber.textContent = `Day ${day} - ${currentSelectedTheme.category}`;
+            modalDoorContent.innerHTML = dayContent;
+
+            // Show modal after a slight delay to allow the flip animation to start
+            setTimeout(() => {
+                doorModal.classList.remove('hidden');
+            }, 300);
+
+            // Re-render doors to update status instantly
+            renderDoors();
+        }
+
+        /**
+         * Closes the content modal.
+         */
+        function closeModal() {
+            doorModal.classList.add('hidden');
+        }
+
+        /**
+         * Toggles Santa Mode (unlocking all doors).
+         */
+        function toggleUnlockAll(checked) {
+            unlockAll = checked;
+            // Rerender doors to apply lock/unlock state
+            renderDoors();
+        }
+        
+        // --- View Navigation ---
+
+        function showAdventCalendar() {
+            if (!currentSelectedTheme) return;
+            saveState();
+            updateViewBasedOnTheme();
+        }
+
+        function backToThemeSelection() {
+            currentSelectedTheme = null;
+            saveState();
+            updateViewBasedOnTheme(); // Switches back to theme view
+            renderThemeCards(); // Ensure themes are visible
+        }
+
+        // --- Countdown Logic ---
+        function startCountdown() {
+            function updateCountdown() {
+                const now = new Date();
+                const currentYear = now.getFullYear();
+                
+                // Set Christmas target date (Dec 25th of current year)
+                let christmasDate = new Date(currentYear, 11, christmasDay); 
+                
+                // If Christmas has passed, target next year
+                if (now.getMonth() === 11 && now.getDate() > christmasDay) {
+                    christmasDate = new Date(currentYear + 1, 11, christmasDay);
+                }
+
+                const distance = christmasDate - now;
+
+                if (distance < 0) {
+                    countdownDisplay.innerHTML = "MERRY CHRISTMAS!";
+                    clearInterval(interval);
+                    return;
+                }
+
+                const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+                countdownDisplay.innerHTML = `${days}d ${hours}h ${minutes}m ${seconds}s`;
+            }
+
+            // Update immediately and then every second
+            updateCountdown();
+            const interval = setInterval(updateCountdown, 1000);
+        }
+
+        // --- Snowfall Logic ---
+        function createSnowflakes() {
+            const container = document.getElementById('snowContainer');
+            const numSnowflakes = 50; 
+            const maxDuration = 15;
+
+            for (let i = 0; i < numSnowflakes; i++) {
+                const flake = document.createElement('div');
+                flake.className = 'snow';
+                
+                // Random size (2px to 5px)
+                const size = Math.random() * 3 + 2; 
+                flake.style.width = `${size}px`;
+                flake.style.height = `${size}px`;
+
+                // Random starting position (0% to 100% width)
+                flake.style.left = `${Math.random() * 100}vw`;
+                
+                // Random animation duration (7s to 15s)
+                const duration = Math.random() * maxDuration + 7;
+                flake.style.animationDuration = `${duration}s`;
+
+                // Random delay to stagger the flakes
+                flake.style.animationDelay = `${Math.random() * -maxDuration}s`; 
+                
+                container.appendChild(flake);
+            }
+        }
+
+        // --- Initialization ---
+        function init() {
+            loadState();
+            startCountdown();
+            createSnowflakes();
+            renderThemeCards();
+            updateViewBasedOnTheme(); // Determine whether to show themes or calendar
+
+            // If a theme was loaded, ensure the start button is enabled
+            if (currentSelectedTheme) {
+                startButton.classList.remove('opacity-50', 'cursor-not-allowed');
+                startButton.disabled = false;
+                selectedThemeDisplay.textContent = currentSelectedTheme.name + ' ' + currentSelectedTheme.icon;
+            }
+        }
+
+        // Start the application setup when the page is fully loaded
+        window.onload = init;
+    </script>
+</body>
+</html>
+
